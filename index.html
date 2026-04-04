@@ -412,6 +412,18 @@ const TAG_META = {
 
 let entries = [
   // ─── April 4, 2026 ───
+  { date: '2026-04-04', type: 'devops', title: 'Cloudflare Email Routing: support@azense.app live',
+    detail: 'Configured Cloudflare Email Routing to forward support@azense.app to Gmail. Deleted old Namecheap MX/TXT records (eforward1-5.registrar-servers.com) and enabled Cloudflare email routing with new MX/TXT records. Destination verified.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'devops', title: 'Cloudflare DNS migration completed',
+    detail: 'Nameservers fully propagated to Cloudflare (magdalena.ns.cloudflare.com, robert.ns.cloudflare.com). Domain status active.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'devops', title: 'Restored training.azense.app and ehr.azense.app DNS',
+    detail: 'Added CNAME records in Cloudflare for training (→ cname.vercel-dns.com) and ehr (→ Render static site). Old Namecheap DNS records did not carry over to Cloudflare automatically.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'devops', title: 'log.azense.app deployed on Render',
+    detail: 'Password-protected dev log page live on Render static site with CNAME in Cloudflare. 37+ changelog entries from March 19 through April 4.',
+    computer: 'computer' },
   { date: '2026-04-04', type: 'feat', title: 'Q-Bank: Board-style question bank for all 10 patients',
     detail: 'Added 50 USMLE/ABIM-style questions (5 per patient) covering principal diagnosis, workup, treatment, and complications. Questions stored in qbankData.js with QbankPanel.jsx UI. Answer choices randomized, with guideline-cited explanations and clickable references.',
     computer: 'computer' },
