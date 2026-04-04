@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZense — Dev Log</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181a20;
+    --surface-2: #1e2028;
+    --border: #2a2d37;
+    --text: #e4e6eb;
+    --text-dim: #8b8d97;
+    --accent: #3b82f6;
+    --accent-dim: rgba(59,130,246,.12);
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,.12);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,.12);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,.12);
+    --purple: #a855f7;
+    --purple-dim: rgba(168,85,247,.12);
+    --cyan: #06b6d4;
+    --cyan-dim: rgba(6,182,212,.12);
+    --pink: #ec4899;
+    --pink-dim: rgba(236,72,153,.12);
+    --teal: #14b8a6;
+    --teal-dim: rgba(20,184,166,.12);
+    --radius: 8px;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Login Screen ── */
+  .login-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    transition: opacity .3s, visibility .3s;
+  }
+  .login-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    width: 360px;
+    text-align: center;
+  }
+  .login-box svg { margin-bottom: 16px; }
+  .login-box h1 {
+    font-size: 20px; font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .login-box p {
+    color: var(--text-dim); font-size: 13px;
+    margin-bottom: 28px;
+  }
+  .login-box input {
+    display: block; width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .login-box input:focus { border-color: var(--accent); }
+  .login-box button {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .login-box button:hover { opacity: .9; }
+  .login-error {
+    color: var(--red); font-size: 12px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 24px 32px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-left svg { flex-shrink: 0; }
+  .header-left h1 { font-size: 20px; font-weight: 600; }
+  .header-left span { color: var(--text-dim); font-size: 13px; }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .stat-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .stat-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+
+  /* ── Filter Bar ── */
+  .filters {
+    padding: 14px 32px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-btn {
+    font-size: 12px; font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .filter-btn:hover { border-color: var(--text-dim); color: var(--text); }
+  .filter-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── Timeline ── */
+  .timeline { padding: 0 32px 60px; }
+
+  .day-group { margin-top: 28px; }
+  .day-header {
+    position: sticky; top: 0;
+    background: var(--bg);
+    padding: 8px 0;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: .03em;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    transition: border-color .2s;
+  }
+  .entry:hover { border-color: #3a3d47; }
+
+  .entry-top {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: .06em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .tag-feat { background: var(--green-dim); color: var(--green); }
+  .tag-fix  { background: var(--red-dim); color: var(--red); }
+  .tag-ui   { background: var(--purple-dim); color: var(--purple); }
+  .tag-refac { background: var(--amber-dim); color: var(--amber); }
+  .tag-devops { background: var(--cyan-dim); color: var(--cyan); }
+  .tag-docs { background: var(--pink-dim); color: var(--pink); }
+  .tag-perf { background: var(--teal-dim); color: var(--teal); }
+  .tag-biz  { background: var(--amber-dim); color: var(--amber); }
+
+  .entry-title {
+    font-size: 14px; font-weight: 500;
+    flex: 1;
+  }
+  .entry-computer {
+    font-size: 11px; color: var(--text-dim);
+    margin-left: auto;
+  }
+  .entry-detail {
+    font-size: 13px; color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── Add Entry Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    opacity: 0; visibility: hidden;
+    transition: opacity .2s, visibility .2s;
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .modal label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--text-dim); margin-bottom: 6px; margin-top: 14px;
+  }
+  .modal input, .modal textarea, .modal select {
+    display: block; width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    font-family: var(--font);
+  }
+  .modal textarea { min-height: 80px; resize: vertical; }
+  .modal input:focus, .modal textarea:focus, .modal select:focus {
+    border-color: var(--accent);
+  }
+  .modal-actions {
+    display: flex; gap: 10px; justify-content: flex-end;
+    margin-top: 22px;
+  }
+  .modal-actions button {
+    padding: 8px 18px;
+    border-radius: var(--radius);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    transition: all .2s;
+  }
+  .modal-actions .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .modal-actions .btn-primary:hover { opacity: .9; }
+
+  /* ── Kbd shortcut hint ── */
+  .kbd-hint {
+    position: fixed; bottom: 20px; right: 24px;
+    font-size: 11px; color: var(--text-dim);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+  }
+  kbd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+    font-family: var(--font);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    header, .filters, .timeline { padding-left: 16px; padding-right: 16px; }
+    .login-box { width: 90%; padding: 28px 20px; }
+    .modal { width: 92%; padding: 20px; }
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+      <rect width="40" height="40" rx="10" fill="#3b82f6"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+            font-family="Inter,sans-serif" font-weight="700" font-size="18" fill="#fff">A</text>
+    </svg>
+    <h1>AZense Dev Log</h1>
+    <p>Sign in to view the project changelog</p>
+    <input type="text" id="loginUser" placeholder="Username" autocomplete="off">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button onclick="attemptLogin()">Sign In</button>
+    <div class="login-error" id="loginError">Invalid credentials</div>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="header-left">
+    <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+      <rect width="40" height="40" rx="10" fill="#3b82f6"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+            font-family="Inter,sans-serif" font-weight="700" font-size="18" fill="#fff">A</text>
+    </svg>
+    <div>
+      <h1>AZense Dev Log</h1>
+      <span>Project changelog &amp; development timeline</span>
+    </div>
+  </div>
+  <div class="header-right" id="statBar"></div>
+</header>
+
+<!-- ═══ FILTERS ═══ -->
+<div class="filters" id="filterBar"></div>
+
+<!-- ═══ TIMELINE ═══ -->
+<div class="timeline" id="timeline"></div>
+
+<!-- ═══ ADD ENTRY MODAL ═══ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>Log New Change</h2>
+    <label>Title</label>
+    <input type="text" id="entryTitle" placeholder="Short description of the change">
+    <label>Detail (optional)</label>
+    <textarea id="entryDetail" placeholder="More context if needed"></textarea>
+    <label>Type</label>
+    <select id="entryType">
+      <option value="feat">Feature</option>
+      <option value="fix">Fix</option>
+      <option value="ui">UI / Design</option>
+      <option value="refac">Refactor</option>
+      <option value="devops">DevOps</option>
+      <option value="docs">Docs</option>
+      <option value="perf">Performance</option>
+      <option value="biz">Business</option>
+    </select>
+    <label>Computer</label>
+    <select id="entryComputer">
+      <option value="laptop">Laptop</option>
+      <option value="desktop">Desktop</option>
+      <option value="computer">Computer (AI)</option>
+    </select>
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="addEntry()">Add Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="kbd-hint"><kbd>Ctrl</kbd> + <kbd>N</kbd> &nbsp;New entry</div>
+
+<script>
+/* ═══════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════ */
+const VALID_USER = 'azense';
+const VALID_PASS = 'Azense009!';
+let authenticated = false;
+
+function attemptLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === VALID_USER && p === VALID_PASS) {
+    authenticated = true;
+    document.getElementById('loginOverlay').classList.add('hidden');
+    renderAll();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') attemptLogin();
+});
+document.getElementById('loginUser').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginPass').focus();
+});
+
+/* ═══════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════ */
+const TAG_META = {
+  feat:   { label: 'FEAT',   cls: 'tag-feat' },
+  fix:    { label: 'FIX',    cls: 'tag-fix' },
+  ui:     { label: 'UI',     cls: 'tag-ui' },
+  refac:  { label: 'REFAC',  cls: 'tag-refac' },
+  devops: { label: 'DEVOPS', cls: 'tag-devops' },
+  docs:   { label: 'DOCS',   cls: 'tag-docs' },
+  perf:   { label: 'PERF',   cls: 'tag-perf' },
+  biz:    { label: 'BIZ',    cls: 'tag-biz' },
+};
+
+let entries = [
+  // ─── April 4, 2026 ───
+  { date: '2026-04-04', type: 'feat', title: 'Q-Bank: Board-style question bank for all 10 patients',
+    detail: 'Added 50 USMLE/ABIM-style questions (5 per patient) covering principal diagnosis, workup, treatment, and complications. Questions stored in qbankData.js with QbankPanel.jsx UI. Answer choices randomized, with guideline-cited explanations and clickable references.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'feat', title: 'Per-user AI response caching with SQLite + Render Disk',
+    detail: 'AI-generated outputs (H&P, discharge summary, rounds presentation, etc.) are now cached per user + patient + output type. Eliminates redundant API calls. Cache survives redeployments via persistent Render Disk.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'feat', title: 'Q-Bank answer persistence per user',
+    detail: 'User-selected Q-Bank answers are saved to the backend. On return visits, previously answered questions show saved selections with correct/incorrect highlighting.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'feat', title: 'Multi-user login: added "resident" account',
+    detail: 'New login — username: resident / password: Resident009!. Each user has independent cache and Q-Bank answer history.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'ui', title: 'Cache indicator: subtle green/purple dot',
+    detail: 'Small dot below output tabs — green for cached (instant), purple for fresh OpenAI generation. Tooltip on hover. Replaced verbose text labels with minimal dots.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'ui', title: 'Removed Q-Bank checkbox from Generate panel',
+    detail: 'Q-Bank tab is self-populated from hardcoded data, no AI generation needed. Removed the unnecessary checkbox — tab button still accessible.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'devops', title: 'Persistent Render Disk for SQLite cache',
+    detail: 'Attached persistent disk to Render backend so cache.db and qbank answers survive restarts and redeployments. Upgraded to Render Starter plan.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'devops', title: 'Started Cloudflare DNS migration for azense.app',
+    detail: 'Switched nameservers from Namecheap to Cloudflare for email routing (support@azense.app forwarding) and CDN/security benefits. DNS propagation in progress.',
+    computer: 'computer' },
+  { date: '2026-04-04', type: 'devops', title: 'log.azense.app — Dev log static site on Render',
+    detail: 'Created azense-log GitHub repo and Render static site for the project changelog. Password-protected single-page app.',
+    computer: 'computer' },
+
+  // ─── April 2, 2026 ───
+  { date: '2026-04-02', type: 'feat', title: 'Rounds Presentation — new AI output tab',
+    detail: 'New checkbox + tab: AI reads the chart and generates a structured oral presentation outline (one-liner, HPI highlights, pertinent data, assessment, plan). Capped at 200 words / 90 seconds read time.',
+    computer: 'computer' },
+  { date: '2026-04-02', type: 'feat', title: 'Patients 4-10: fully enriched sample cases',
+    detail: 'Expanded from 3 to 10 complete patient cases (30-44KB each). Covers NSTEMI, septic shock/ARDS, GI bleed, DKA, hypertensive emergency, PE, and HHS with detailed labs, imaging, meds, and hospital courses.',
+    computer: 'computer' },
+  { date: '2026-04-02', type: 'ui', title: 'Discharge Summary visual overhaul',
+    detail: 'Redesigned summary tab: blue gradient banner with one-liner, two-column cards (principal dx + secondary problems vs. hospital course), amber medication change cards, green follow-up cards, color-coded problem list pill badges.',
+    computer: 'computer' },
+  { date: '2026-04-02', type: 'fix', title: 'Rounds Presentation backend endpoint fix',
+    detail: 'Fixed two bugs: endpoint was using plain default instead of FastAPI Query() for patient_id, and calling wrong data loader function (load_patient_data instead of load_patient_bundle).',
+    computer: 'computer' },
+  { date: '2026-04-02', type: 'refac', title: 'Removed Coding Dx checkbox and tab entirely',
+    detail: 'Coding diagnosis feature removed from both frontend and backend — checkbox, tab, state, fetch calls, and render logic all cleaned out.',
+    computer: 'computer' },
+
+  // ─── March 31, 2026 ───
+  { date: '2026-03-31', type: 'feat', title: 'AZense-AI teaching chat: case-aware context',
+    detail: 'Chat now auto-includes the active patient context and evaluation results. Placeholder says "Ask about this case..." — prevents cross-case confusion.',
+    computer: 'computer' },
+  { date: '2026-03-31', type: 'ui', title: 'Note Evaluator formatting: compact section headers',
+    detail: 'Replaced large ## markdown headers with compact bold labels. Tightened vertical spacing between HPI, Assessment, Plan, Missed Problems, and Teaching Points sections.',
+    computer: 'computer' },
+  { date: '2026-03-31', type: 'ui', title: 'Section dividers + larger titles in Note Evaluator',
+    detail: 'Added horizontal line dividers above each section (HPI, Assessment & Problem List, Plan, etc.) with larger 13.5px headers in AZense blue.',
+    computer: 'computer' },
+  { date: '2026-03-31', type: 'ui', title: 'Motivational language: "Good" → "Excellent", "Incorrect" → "Consider"',
+    detail: 'Softened evaluator feedback language. "Consider" items highlighted with red background badge. "Excellent" items keep green checkmark styling.',
+    computer: 'computer' },
+  { date: '2026-03-31', type: 'ui', title: 'AZense-AI chatbox height 3-4x larger',
+    detail: 'Increased chatbox max height from 360px to 1200px and message area min height from 60px to 250px. Long AI responses no longer get clipped.',
+    computer: 'computer' },
+  { date: '2026-03-31', type: 'docs', title: 'AZense Project Changelog created',
+    detail: 'Created 8-page Word document tracking all changes from March 19 through March 31. Reverse chronological, day-by-day format with architecture summary.',
+    computer: 'computer' },
+
+  // ─── March 30, 2026 ───
+  { date: '2026-03-30', type: 'feat', title: 'Simulation EHR viewer at ehr.azense.app',
+    detail: 'Launched tabbed EHR viewer with ED Notes, Triage, Nursing Notes, Labs, Vitals, Imaging, Medications, and Problem List tabs. Reads from sample patient JSON files.',
+    computer: 'computer' },
+  { date: '2026-03-30', type: 'feat', title: 'Note Evaluator: AI-powered H&P grading',
+    detail: 'Residents write H&P within 15 minutes, then AI evaluates against the chart data. Highlights excellent sections, flags missed problems, and provides teaching points.',
+    computer: 'computer' },
+  { date: '2026-03-30', type: 'feat', title: 'Sample patients 1-3 with full clinical data',
+    detail: 'Patient 1: sepsis/cellulitis + AKI + AFib + HFrEF. Patient 2: AECOPD with hypercapnic respiratory failure. Patient 3: upper GI bleed with cirrhosis. Each includes comprehensive ED, nursing, lab, imaging, and medication data.',
+    computer: 'computer' },
+
+  // ─── March 27, 2026 ───
+  { date: '2026-03-27', type: 'devops', title: 'Project split: training vs. integration repos',
+    detail: 'Separated Azense into two fully independent repositories and Render services — azense-backend-training (simulation/teaching) and azense-backend-integration (FHIR/EHR). Distinct GitHub repos, separate deployments.',
+    computer: 'computer' },
+  { date: '2026-03-27', type: 'devops', title: 'Three Render services configured',
+    detail: 'azense-backend (main), azense-backend-integration (FHIR/EHR), azense-backend-training (simulation). Each with independent environment variables and deploy hooks.',
+    computer: 'computer' },
+
+  // ─── March 25, 2026 ───
+  { date: '2026-03-25', type: 'feat', title: 'Coding Dx explanations with ICD-10 codes',
+    detail: 'AI generates diagnosis coding suggestions with ICD-10 codes and explanations of why each code applies. Helps residents understand coding logic.',
+    computer: 'computer' },
+  { date: '2026-03-25', type: 'ui', title: 'H&P and Progress Note output quality improvements',
+    detail: 'Improved AI prompt engineering for cleaner, more structured H&P and progress note outputs with better section headers and clinical formatting.',
+    computer: 'computer' },
+
+  // ─── March 22, 2026 ───
+  { date: '2026-03-22', type: 'fix', title: 'Backend FileNotFoundError: sample_data path fix',
+    detail: 'Moved sample_data folder inside the backend directory root so Render can find patient JSON files. Was previously one level too high in the repo structure.',
+    computer: 'computer' },
+  { date: '2026-03-22', type: 'fix', title: 'Frontend VITE_API_BASE environment variable',
+    detail: 'Set VITE_API_BASE to https://azense-backend.onrender.com in Vercel production env. Fixed frontend failing to reach backend after deployment.',
+    computer: 'computer' },
+  { date: '2026-03-22', type: 'devops', title: 'Vercel + Render deployment pipeline established',
+    detail: 'Frontend auto-deploys on Vercel from GitHub push, backend auto-deploys on Render. Full CI/CD for both ends.',
+    computer: 'computer' },
+
+  // ─── March 21, 2026 ───
+  { date: '2026-03-21', type: 'feat', title: 'Discharge Summary generation',
+    detail: 'AI reads patient chart data and generates structured discharge summaries with principal diagnosis, hospital course, medication changes, and follow-up instructions.',
+    computer: 'computer' },
+  { date: '2026-03-21', type: 'ui', title: 'Discharge Summary card-based layout',
+    detail: 'Visual layout with colored cards for different summary sections — blue for diagnoses, amber for med changes, green for follow-up.',
+    computer: 'computer' },
+
+  // ─── March 19, 2026 ───
+  { date: '2026-03-19', type: 'feat', title: 'AZense project initialized',
+    detail: 'Created React (Vite) frontend and FastAPI backend. Initial project structure with patient data loading, OpenAI integration, and basic generate-summary endpoint.',
+    computer: 'computer' },
+  { date: '2026-03-19', type: 'devops', title: 'GitHub repos created under zarehmd-svg',
+    detail: 'Set up version control with separate repos. Configured for multi-computer development (laptop + desktop) via Git sync.',
+    computer: 'computer' },
+  { date: '2026-03-19', type: 'ui', title: 'AZense logo designed',
+    detail: 'Created custom logo for the AZense brand — blue accent, clean modern look. Applied across frontend and EHR viewer.',
+    computer: 'computer' },
+
+  // ─── Business / Non-date-specific ───
+  { date: '2026-03-28', type: 'biz', title: 'Azense AI LLC formation initiated',
+    detail: 'Started California LLC registration process for Azense AI. Business structure for the healthcare AI product.',
+    computer: 'laptop' },
+  { date: '2026-03-28', type: 'biz', title: 'Trademark registration research for "AZense"',
+    detail: 'Researched USPTO trademark filing for AZense brand name in healthcare/software categories.',
+    computer: 'laptop' },
+];
+
+// Sort entries newest first
+entries.sort((a, b) => b.date.localeCompare(a.date));
+
+// Persist new entries to localStorage
+function saveEntries() {
+  localStorage.setItem('azense-log-entries', JSON.stringify(entries));
+}
+function loadSavedEntries() {
+  const saved = localStorage.getItem('azense-log-entries');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      // Merge: add any user-added entries (ones not in seed data) 
+      const seedTitles = new Set(entries.map(e => e.date + e.title));
+      for (const e of parsed) {
+        if (!seedTitles.has(e.date + e.title)) {
+          entries.push(e);
+        }
+      }
+      entries.sort((a, b) => b.date.localeCompare(a.date));
+    } catch {}
+  }
+}
+loadSavedEntries();
+
+/* ═══════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════ */
+let activeFilter = null;
+
+function renderAll() {
+  if (!authenticated) return;
+  renderStats();
+  renderFilters();
+  renderTimeline();
+}
+
+function renderStats() {
+  const counts = {};
+  for (const e of entries) counts[e.type] = (counts[e.type] || 0) + 1;
+  const bar = document.getElementById('statBar');
+  bar.innerHTML = '';
+  const order = ['feat','fix','ui','refac','devops','docs','perf','biz'];
+  for (const t of order) {
+    if (!counts[t]) continue;
+    const m = TAG_META[t];
+    const pill = document.createElement('span');
+    pill.className = 'stat-pill';
+    pill.innerHTML = `<span class="stat-dot" style="background:var(--${
+      t === 'feat' ? 'green' : t === 'fix' ? 'red' : t === 'ui' ? 'purple' :
+      t === 'refac' ? 'amber' : t === 'devops' ? 'cyan' : t === 'docs' ? 'pink' :
+      t === 'perf' ? 'teal' : 'amber'
+    })"></span>${m.label} ${counts[t]}`;
+    bar.appendChild(pill);
+  }
+}
+
+function renderFilters() {
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn' + (activeFilter === null ? ' active' : '');
+  allBtn.textContent = 'All';
+  allBtn.onclick = () => { activeFilter = null; renderAll(); };
+  bar.appendChild(allBtn);
+
+  for (const [key, meta] of Object.entries(TAG_META)) {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (activeFilter === key ? ' active' : '');
+    btn.textContent = meta.label;
+    btn.onclick = () => { activeFilter = key; renderAll(); };
+    bar.appendChild(btn);
+  }
+}
+
+function renderTimeline() {
+  const container = document.getElementById('timeline');
+  container.innerHTML = '';
+  const filtered = activeFilter ? entries.filter(e => e.type === activeFilter) : entries;
+
+  // Group by date
+  const groups = {};
+  for (const e of filtered) {
+    if (!groups[e.date]) groups[e.date] = [];
+    groups[e.date].push(e);
+  }
+
+  for (const [date, items] of Object.entries(groups)) {
+    const group = document.createElement('div');
+    group.className = 'day-group';
+
+    const header = document.createElement('div');
+    header.className = 'day-header';
+    const d = new Date(date + 'T12:00:00');
+    header.textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    group.appendChild(header);
+
+    for (const entry of items) {
+      const el = document.createElement('div');
+      el.className = 'entry';
+      const meta = TAG_META[entry.type] || TAG_META.feat;
+      el.innerHTML = `
+        <div class="entry-top">
+          <span class="tag ${meta.cls}">${meta.label}</span>
+          <span class="entry-title">${esc(entry.title)}</span>
+          <span class="entry-computer">${entry.computer === 'computer' ? '🤖 Computer' : entry.computer === 'laptop' ? '💻 Laptop' : '🖥️ Desktop'}</span>
+        </div>
+        ${entry.detail ? `<div class="entry-detail">${esc(entry.detail)}</div>` : ''}
+      `;
+      group.appendChild(el);
+    }
+    container.appendChild(group);
+  }
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+/* ═══════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════ */
+function openModal() {
+  if (!authenticated) return;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('entryTitle').focus();
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('entryTitle').value = '';
+  document.getElementById('entryDetail').value = '';
+}
+
+function addEntry() {
+  const title = document.getElementById('entryTitle').value.trim();
+  if (!title) return;
+  const detail = document.getElementById('entryDetail').value.trim();
+  const type = document.getElementById('entryType').value;
+  const computer = document.getElementById('entryComputer').value;
+  const today = new Date().toISOString().split('T')[0];
+
+  entries.unshift({ date: today, type, title, detail, computer });
+  entries.sort((a, b) => b.date.localeCompare(a.date));
+  saveEntries();
+  closeModal();
+  renderAll();
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+    e.preventDefault();
+    openModal();
+  }
+  if (e.key === 'Escape') closeModal();
+});
+
+// Click outside modal to close
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+</script>
+</body>
+</html>
