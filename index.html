@@ -417,6 +417,35 @@ const TAG_META = {
 };
 
 let entries = [
+  // ─── April 11, 2026 ───
+  { date: '2026-04-11', type: 'ui', title: 'Animated teal-blue border on header branding area',
+    detail: 'Added a futuristic conic-gradient animated border that cycles between teal (#06B6D4, #14B8A6) and blue (#3B82F6, #2563EB) around the logo, tagline, Tutorial/Info/Review buttons. Uses CSS @property --border-angle with mask-composite for a continuously rotating glow effect.',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'feat', title: 'Free trial expanded to 5 patients (1 full block)',
+    detail: 'TRIAL_PATIENT_IDS updated from [1,2,3] to [1,2,3,4,5] in backend. Trial users now see one complete block of 5 cases on the Dashboard. Welcome email and frontend trial messaging updated to reflect "5 trial cases (Patients 1–5)".',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'feat', title: 'Merged Total Stats and My Progress into single tab',
+    detail: 'Removed the separate "TOTAL STATS" nav button and its modal popup. Created StatsInline component (non-modal inline version). Now renders directly below the ProgressPage graph under a unified "My Progress & Stats" button. All scoring, per-case cards, Q-Bank/Note Eval tabs, and reset functionality preserved.',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'fix', title: 'Chart Reviewed auto-populate via postMessage bridge',
+    detail: 'Implemented cross-origin communication between training app and embedded EHR iframe. Training app sends GET_EHR_NOTE via postMessage, EHR responds with EHR_NOTE_TEXT containing the note text. Auto-populates Step 2 textarea and advances stepper.',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'ui', title: 'Removed Simulation EHR button from training nav bar',
+    detail: 'EHR is now fully embedded as an iframe in Step 1 of the case flow. The separate "Simulation EHR (new window)" button is no longer needed and was removed.',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'fix', title: 'Removed duplicate textarea from Step 1',
+    detail: 'Step 1 (Review Chart) had an extra note textarea added below the EHR iframe. Removed it — the EHR\'s own built-in note box is the only note-writing area in Step 1.',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'feat', title: 'researchtraining.azense.app: Full UI overhaul to match training app',
+    detail: 'Major refactor of the research training frontend: Dashboard with 3 blocks of 5 cases (day-gated locking with unlock dates shown), CaseStepper 4-step flow (Review Chart → Write Note → AI Feedback → Q-Bank), embedded researchehr.azense.app iframe, postMessage bridge for note transfer, merged My Progress & Stats page, Self-Eval moved to dashboard area. Removed Simulation EHR new-window button.',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'feat', title: 'researchehr.azense.app: postMessage listener added',
+    detail: 'Added GET_EHR_NOTE → EHR_NOTE_TEXT postMessage handler to research EHR app, matching the original ehr.azense.app implementation. Enables the embedded iframe to respond to note text requests from the research training app.',
+    computer: 'computer' },
+  { date: '2026-04-11', type: 'ui', title: 'Azense logo enlarged to 110px',
+    detail: 'Increased the Azense logo height from default to 110px on training.azense.app for better visual presence in the header.',
+    computer: 'computer' },
+
   // ─── April 5, 2026 ───
   { date: '2026-04-05', type: 'feat', title: 'Patient 11: Acute Ischemic Stroke (L MCA), Day 2 — Progress Note',
     detail: 'New EHR chart: 67 y/o M with acute L MCA ischemic stroke, Day 2 progress note. Hidden findings: new AFib on telemetry, PFO on TTE bubble study, DVT on lower extremity ultrasound, hyperlipidemia in lipid panel, dysphagia on bedside swallow evaluation leading to PEG tube consideration. Includes ED, triage, H&P, nursing notes, speech pathology consult, and comprehensive labs/imaging.',
